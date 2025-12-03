@@ -2,9 +2,9 @@ const axios = require("axios");
 const cheerio = require("cheerio");
 
 module.exports = {
-    name: 'LiveChartScrape',
+    name: 'Ranking Anime',
     desc: 'Scrape anime ranking from livechart.me',
-    category: 'Scraper',
+    category: 'Anime',
     params: [],
 
     async run(req, res) {
