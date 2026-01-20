@@ -1,13 +1,16 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
 
+/* Base Styles */
 body {
     font-family: 'Poppins', sans-serif;
+    transition: opacity 0.3s ease;
 }
 
 body.noscroll {
     overflow: hidden;
 }
 
+/* Page Loader */
 .page-loader {
     position: fixed;
     top: 0;
@@ -17,17 +20,17 @@ body.noscroll {
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 15;
-    transition: opacity 0.1s ease-out;
+    z-index: 999;
+    transition: opacity 0.3s ease-out;
 }
 
 .loader {
     width: 40px;
     height: 40px;
-    border: 5px solid #f3f3f3;
+    border: 4px solid #f3f3f3;
     border-radius: 50%;
-    border-top: 5px solid #333;
-    animation: spin 1s linear infinite;
+    border-top: 4px solid #1f2937; /* Warna Gray-800 sesuai tema */
+    animation: spin 0.8s linear infinite;
 }
 
 @keyframes spin {
@@ -35,11 +38,22 @@ body.noscroll {
     100% { transform: rotate(360deg); }
 }
 
+/* Scrollbar Utility */
 #response-data::-webkit-scrollbar {
     display: none !important;
 }
 
-/* Accordion animations */
+/* Navbar Custom Fix */
+nav {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+nav a {
+    transition: all 0.2s ease;
+    letter-spacing: 0.05em;
+}
+
+/* Accordion animations (Untuk Docs.html) */
 .accordion-content {
     max-height: 0;
     overflow: hidden;
@@ -50,7 +64,6 @@ body.noscroll {
 .accordion-content.active {
     max-height: 5000px;
     opacity: 1;
-    transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
 }
 
 .accordion-icon {
@@ -71,31 +84,45 @@ body.noscroll {
     background-color: #f3f4f6;
 }
 
-/* Smooth item appearance */
+/* Industrial Decorations (Untuk Index.html) */
+.industrial-banner {
+    border: 2px dashed #6b7280; /* Gray-500 */
+    position: relative;
+    background: white;
+}
+
+.dot {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    background-color: #1f2937; /* Gray-800 */
+    border-radius: 50%;
+    z-index: 10;
+}
+
+/* Button & Card 'Solid' look */
+.btn-industrial {
+    transition: all 0.2s ease;
+    box-shadow: 4px 4px 0px 0px #1f2937;
+}
+
+.btn-industrial:active {
+    transform: translate(2px, 2px);
+    box-shadow: 0px 0px 0px 0px #1f2937;
+}
+
+/* Smooth item appearance animation */
 .accordion-content.active .row > div {
     animation: slideIn 0.3s ease-out forwards;
     opacity: 0;
 }
 
-.accordion-content.active .row > div:nth-child(1) {
-    animation-delay: 0.05s;
-}
-
-.accordion-content.active .row > div:nth-child(2) {
-    animation-delay: 0.08s;
-}
-
-.accordion-content.active .row > div:nth-child(3) {
-    animation-delay: 0.11s;
-}
-
-.accordion-content.active .row > div:nth-child(4) {
-    animation-delay: 0.14s;
-}
-
-.accordion-content.active .row > div:nth-child(5) {
-    animation-delay: 0.17s;
-}
+/* Staggered animation delays */
+.accordion-content.active .row > div:nth-child(1) { animation-delay: 0.05s; }
+.accordion-content.active .row > div:nth-child(2) { animation-delay: 0.08s; }
+.accordion-content.active .row > div:nth-child(3) { animation-delay: 0.11s; }
+.accordion-content.active .row > div:nth-child(4) { animation-delay: 0.14s; }
+.accordion-content.active .row > div:nth-child(5) { animation-delay: 0.17s; }
 
 @keyframes slideIn {
     from {
