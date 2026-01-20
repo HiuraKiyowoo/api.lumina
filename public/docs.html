@@ -11,9 +11,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/styles.css">
 </head>
-<body class="bg-white min-h-screen pt-[84px] pb-10">
-
-    <div id="page-loader" class="page-loader bg-white">
+<body class="bg-white min-h-screen pt-[84px] pb-10"> <div id="page-loader" class="page-loader bg-white">
         <div class="loader"></div>
     </div>
 
@@ -21,7 +19,6 @@
         <div class="text-white font-bold tracking-tighter uppercase text-sm">
             Dev <span class="text-gray-400">API Base</span>
         </div>
-        
         <div class="flex gap-6">
             <a href="/" class="text-gray-300 hover:text-white text-[11px] font-bold uppercase tracking-wider transition-colors">Home</a>
             <a href="/docs" class="text-white text-[11px] font-bold uppercase tracking-wider border-b-2 border-white pb-1">Docs</a>
@@ -29,11 +26,11 @@
     </nav>
     
     <div class="px-10 md:px-5 max-w-3xl mx-auto">
-        <div class="flex flex-row items-center mb-4 justify-between">
+        <div class="flex flex-row items-center mb-6 justify-between">
             <div class="flex flex-row gap-3">
                 <a id="api-info" target="_blank">
                     <button class="bg-gray-50 p-2 lg:hidden focus:outline-none border border-gray-200">
-                        <span class="material-icons text-gray-600 align-middle text-sm">info</span>
+                        <span class="material-icons text-gray-600 align-middle">info</span>
                     </button>
                 </a>
             </div>
@@ -48,47 +45,42 @@
             <div class="flex items-center gap-2 mb-2">
                 <a href="https://github.com/rynxzyy/Hiuraa-API-Base" target="_blank" class="flex items-center text-gray-400 hover:text-gray-500 transition-colors" style="font-size: 11px;">
                     <i class="fab fa-github mr-2"></i>
-                    <span class="font-medium tracking-wide">Hiuraa API Base</span>
+                    <span class="font-medium">Hiuraa API Base</span>
                 </a>
             </div>
             
-            <div class="flex flex-wrap items-center gap-3 mb-3">
-                <h2 id="api-name" class="text-3xl font-bold tracking-tight text-gray-900">Name</h2>
-                <div id="api-author" class="bg-gray-800 text-white text-[10px] font-bold px-2 py-1 tracking-widest uppercase shrink-0">
-                    by Who.
-                </div>
+            <div class="flex flex-wrap items-center gap-2 mb-3">
+                <h2 id="api-name" class="text-3xl font-bold tracking-tight">Name</h2>
+                <div id="api-author" class="bg-gray-800 text-white text-[10px] font-bold px-2 py-1 tracking-widest uppercase shrink-0">by Who.</div>
             </div>
-
-            <p id="api-desc" class="text-[11px] text-gray-600 mb-5 leading-relaxed max-w-lg">Description</p>
-            
-            <div id="api-links" class="flex flex-col gap-1 text-[11px] text-gray-500 font-medium"></div>
-
-            <div class="mt-6 pt-4 border-t border-gray-100 flex justify-between items-center">
-                <span id="api-copyright" class="text-[10px] text-gray-400 font-bold tracking-widest uppercase">© 2025 Rynxzyy. DevAPI</span>
+            <p id="api-desc" class="text-[11px] text-gray-600 mb-4 leading-relaxed">Desc</p>
+            <div id="api-links" class="flex flex-col gap-1 text-[11px] text-gray-500"></div>
+            <div class="mt-4 pt-3 border-t border-gray-100 flex justify-between items-center">
+                <span id="api-copyright" class="text-[10px] text-gray-400 font-bold tracking-widest uppercase">© 2025 Rynxzyy • DevAPI</span>
             </div>
         </div>
         
-        <div class="relative w-full mb-8">
+        <div class="relative w-full mb-6">
             <input 
                 type="text" 
                 id="api-search" 
-                class="w-full px-4 py-4 text-[13px] text-gray-700 border-2 border-gray-200 focus:outline-none focus:border-gray-800 transition-colors pl-11" 
+                class="w-full px-4 py-4 text-sm text-gray-700 border-2 border-gray-100 focus:outline-none focus:border-gray-800 transition-all pl-12" 
                 placeholder="Search API Endpoints...">
-            <span class="material-icons absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 text-xl">search</span>
+            <span class="material-icons absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400">search</span>
         </div>
         
         <div class="tab-content" id="api-content"></div>
     </div>
     
     <div id="api-modal" class="fixed inset-0 z-50 hidden overflow-y-auto overflow-x-hidden flex items-center justify-center p-6 transition-opacity duration-200 ease-out opacity-0">
-        <div class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm opacity-0 transition-opacity duration-200 ease-out"></div>
+        <div class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm opacity-0 transition-opacity duration-200 ease-out"></div>
         <div class="relative z-10 bg-white border-2 border-gray-800 shadow-[8px_8px_0px_0px_rgba(31,41,55,1)] w-full max-w-lg mx-auto p-8 my-auto transform scale-95 opacity-0 transition-all duration-200 ease-out">
-            <div class="flex justify-between items-center mb-6">
+            <div class="flex justify-between items-center mb-4">
                 <div class="flex items-center">
-                    <span id="api-method" class="px-2 py-1 text-[10px] font-bold bg-blue-600 text-white mr-3 tracking-widest uppercase">GET</span>
+                    <span id="api-method" class="px-2 py-1 text-[10px] font-bold bg-blue-600 text-white mr-2 tracking-widest">GET</span>
                     <h3 class="text-xl font-bold tracking-tight" id="modal-title">API Request</h3>
                 </div>
-                <button id="close-modal" class="text-gray-400 hover:text-gray-900 transition-colors">
+                <button id="close-modal" class="text-gray-400 hover:text-gray-900 transition-colors focus:outline-none">
                     <span class="material-icons">close</span>
                 </button>
             </div>
@@ -99,26 +91,26 @@
             
             <div id="params-container" class="mb-6"></div>
             
-            <button id="submit-api" class="w-full bg-gray-800 hover:bg-gray-900 text-white px-4 py-3 text-[11px] font-bold uppercase tracking-[0.2em] transition duration-300">
+            <button id="submit-api" class="w-full bg-gray-800 hover:bg-gray-900 text-white px-4 py-3 text-[11px] font-bold uppercase tracking-[0.2em] transition-all">
                 Send Request
             </button>
             
-            <div id="response-container" class="mt-8 hidden border-t border-gray-100 pt-6">
-                <div class="flex items-center justify-between mb-4">
-                    <h4 class="text-[11px] font-bold uppercase tracking-widest text-gray-400">Response Data</h4>
-                    <div class="flex items-center gap-3">
-                        <span id="response-status" class="px-2 py-0.5 text-[10px] font-bold bg-green-100 text-green-700 uppercase">200</span>
+            <div id="response-container" class="mt-6 hidden border-t border-gray-100 pt-6">
+                <div class="flex items-center justify-between mb-3">
+                    <h4 class="text-[10px] font-bold uppercase tracking-widest text-gray-400">Response</h4>
+                    <div class="flex items-center">
+                        <span id="response-status" class="px-2 py-0.5 text-[10px] font-bold bg-green-100 text-green-700 mr-2 uppercase">200 OK</span>
                         <span id="response-time" class="text-[10px] font-bold text-gray-400">200ms</span>
                     </div>
                 </div>
-                <pre id="response-data" class="bg-gray-50 p-4 text-[11px] font-mono text-gray-700 overflow-auto max-h-64 border border-gray-100"></pre>
+                <pre id="response-data" class="bg-gray-50 p-4 text-[11px] font-mono text-gray-700 overflow-auto max-h-60 border border-gray-100"></pre>
             </div>
         </div>
     </div>
 
     <script src="/script.js"></script>
     <script>
-        // Handle Loader
+        // Loader logic agar sinkron dengan index
         window.addEventListener('load', () => {
             const loader = document.getElementById('page-loader');
             setTimeout(() => {
