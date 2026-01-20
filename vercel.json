@@ -9,15 +9,27 @@
   "routes": [
     {
       "src": "/",
-      "dest": "/index.html"
+      "dest": "/docs/index.html"
     },
     {
       "src": "/docs",
-      "dest": "/docs.html"
+      "dest": "/docs/docs.html"
     },
     {
-      "src": "/docs.html",
-      "dest": "/docs.html"
+      "src": "/styles.css",
+      "dest": "/docs/styles.css"
+    },
+    {
+      "src": "/script.js",
+      "dest": "/docs/script.js"
+    },
+    {
+      "src": "/image/(.*)",
+      "dest": "/docs/image/$1"
+    },
+    {
+      "src": "/err/(.*)",
+      "dest": "/docs/err/$1"
     },
     {
       "src": "/(endpoints|set)",
