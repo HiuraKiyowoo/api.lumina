@@ -22,7 +22,7 @@ async function nekolabs(text) {
 
 module.exports = {
   name: "Ai4Chat",
-  desc: "Json Respone | Research",
+  desc: "JSON Respone | GPT Based",
   category: "AI",
   params: ["text"],
 
