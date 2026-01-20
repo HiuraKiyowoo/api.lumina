@@ -1,36 +1,18 @@
 {
   "version": 2,
+  "public": true,
+  "cleanUrls": true,
   "builds": [
     {
       "src": "index.js",
       "use": "@vercel/node"
+    },
+    {
+      "src": "public/**",
+      "use": "@vercel/static"
     }
   ],
   "routes": [
-    {
-      "src": "/",
-      "dest": "/docs/index.html"
-    },
-    {
-      "src": "/docs",
-      "dest": "/docs/docs.html"
-    },
-    {
-      "src": "/styles.css",
-      "dest": "/docs/styles.css"
-    },
-    {
-      "src": "/script.js",
-      "dest": "/docs/script.js"
-    },
-    {
-      "src": "/image/(.*)",
-      "dest": "/docs/image/$1"
-    },
-    {
-      "src": "/err/(.*)",
-      "dest": "/docs/err/$1"
-    },
     {
       "src": "/(endpoints|set)",
       "dest": "/index.js"
@@ -40,8 +22,16 @@
       "dest": "/index.js"
     },
     {
+      "src": "/docs",
+      "dest": "/public/docs.html"
+    },
+    {
+      "src": "/",
+      "dest": "/public/index.html"
+    },
+    {
       "src": "/(.*)",
-      "dest": "/index.js"
+      "dest": "/public/$1"
     }
   ],
   "env": {
