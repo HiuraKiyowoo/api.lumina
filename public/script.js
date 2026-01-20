@@ -1,11 +1,24 @@
 document.addEventListener('DOMContentLoaded', async function () {
+    // --- 1. INITIAL STATE & LOADER ---
     document.body.classList.add('noscroll');
-    hideLoader();
-    
+    const pageLoader = document.getElementById('page-loader');
+
+    const hideLoader = () => {
+        setTimeout(() => {
+            document.body.classList.remove('noscroll');
+            if (pageLoader) {
+                pageLoader.style.opacity = '0';
+                setTimeout(() => { pageLoader.style.display = 'none'; }, 500);
+            }
+        }, 800);
+    };
+
+    // --- 2. DATA FETCHING ---
     try {
         const endpoints = await (await fetch('/endpoints')).json();
         const set = await (await fetch('/set')).json();
         
+        // Setup Metadata
         setContent('api-icon', 'href', set.icon);
         setContent('api-title', 'textContent', set.name.main);
         setContent('api-description', 'content', set.description);
@@ -17,542 +30,260 @@ document.addEventListener('DOMContentLoaded', async function () {
         
         setupApiLinks(set);
         setupApiContent(endpoints);
-        setupApiButtonHandlers(endpoints);
         setupSearchFunctionality();
         setupAccordion();
+        hideLoader();
     } catch (error) {
         console.error('Error loading configuration:', error);
+        hideLoader();
     }
-    
+
     function setContent(id, property, value) {
         const element = document.getElementById(id);
         if (element) element[property] = value;
     }
-    
-    function setupApiLinks(gtw) {
-        const apiLinksContainer = document.getElementById('api-links');
-        
-        apiLinksContainer.innerHTML = '';
-        
-        if (apiLinksContainer && gtw.links?.length) {
-            gtw.links.forEach(link => {
-                const linkContainer = document.createElement('div');
-                linkContainer.className = 'flex items-center gap-2';
-                
-                const bulletPoint = document.createElement('div');
-                bulletPoint.className = `w-2 h-2 bg-gray-400 rounded-full`;
-                
-                const linkElement = document.createElement('a');
-                linkElement.href = link.url;
-                linkElement.textContent = link.name;
-                linkElement.className = 'hover:underline';
-                linkElement.target = '_blank';
-                
-                linkContainer.appendChild(bulletPoint);
-                linkContainer.appendChild(linkElement);
-                
-                apiLinksContainer.appendChild(linkContainer);
-            });
-        }
-    }
-    
-    const pageLoader = document.getElementById('page-loader');
-    
-    window.addEventListener('load', function() {
-        setTimeout(function() {
-            const scrollPosition = parseInt(document.body.style.top || '0') * -1;
-            document.body.classList.remove('noscroll');
-            document.body.style.top = '';
-            window.scrollTo(0, scrollPosition);
-            pageLoader.style.opacity = '0';
-            setTimeout(function() {
-                pageLoader.style.display = 'none';
-            }, 800);
-        }, 1000);
-    });
-    
-    function showLoader() {
-        const scrollPosition = window.scrollY;
-        document.body.style.top = `-${scrollPosition}px`;
-        document.body.classList.add('noscroll');
-        pageLoader.style.display = 'flex';
-        pageLoader.style.opacity = '1';
-    }
-    
-    function hideLoader() {
-        setTimeout(function() {
-            const scrollPosition = parseInt(document.body.style.top || '0') * -1;
-            document.body.classList.remove('noscroll');
-            document.body.style.top = '';
-            window.scrollTo(0, scrollPosition);
-            pageLoader.style.opacity = '0';
-            setTimeout(function() {
-                pageLoader.style.display = 'none';
-            }, 800);
-        }, 1000);
-    }
-    
-    function setupApiContent(gtw) {
+
+    // --- 3. UI GENERATION ---
+    function setupApiContent(data) {
         const apiContent = document.getElementById('api-content');
-        gtw.endpoints.forEach(category => {
-            // Category wrapper
+        if (!apiContent) return;
+
+        data.endpoints.forEach(category => {
             const categoryWrapper = document.createElement('div');
-            categoryWrapper.className = 'mb-5';
+            categoryWrapper.className = 'mb-5 category-section';
             
-            // Category header (clickable)
-            const categoryHeader = document.createElement('div');
-            categoryHeader.className = 'category-header flex items-center justify-between p-4 bg-gray-100 border border-gray-300 mb-0';
+            categoryWrapper.innerHTML = `
+                <div class="category-header flex items-center justify-between p-4 bg-gray-100 border border-gray-300 transition-all hover:bg-gray-200">
+                    <h3 class="text-sm font-bold text-gray-700 uppercase tracking-tight">${category.name}</h3>
+                    <span class="material-icons accordion-icon text-gray-600">expand_more</span>
+                </div>
+                <div class="accordion-content">
+                    <div class="row pt-4 space-y-2"></div>
+                </div>
+            `;
+
+            const row = categoryWrapper.querySelector('.row');
+            const items = Object.entries(category.items).map(([, item]) => item);
             
-            const categoryTitle = document.createElement('h3');
-            categoryTitle.className = 'text-xl font-semibold text-gray-700';
-            categoryTitle.textContent = category.name;
-            
-            const chevronIcon = document.createElement('span');
-            chevronIcon.className = 'material-icons accordion-icon text-gray-600';
-            chevronIcon.textContent = 'expand_more';
-            
-            categoryHeader.appendChild(categoryTitle);
-            categoryHeader.appendChild(chevronIcon);
-            
-            // Accordion content (collapsible)
-            const accordionContent = document.createElement('div');
-            accordionContent.className = 'accordion-content';
-            
-            const row = document.createElement('div');
-            row.className = 'row pt-4';
-            
-            const sortedItems = Object.entries(category.items)
-                .sort(([, a], [, b]) => (a.name || '').localeCompare(b.name || ''))
-                .map(([,item]) => item);
-            
-            sortedItems.forEach((itemData, index) => {
+            items.forEach(itemData => {
                 const itemName = Object.keys(itemData)[0];
                 const item = itemData[itemName];
-                const isLastItem = index === sortedItems.length - 1;
-                const itemElement = createApiItemElement(itemName, item, isLastItem);
-                row.appendChild(itemElement);
+                const itemEl = document.createElement('div');
+                itemEl.className = 'api-item-card w-full mb-2';
+                itemEl.dataset.name = itemName.toLowerCase();
+                itemEl.dataset.desc = (item.desc || '').toLowerCase();
+
+                itemEl.innerHTML = `
+                    <div class="flex items-center justify-between p-4 px-6 bg-gray-50 border border-gray-200 shadow-sm transition-all hover:border-gray-800">
+                        <div class="flex-grow mr-4 overflow-hidden">
+                            <h5 class="text-[13px] font-bold text-gray-800 truncate uppercase tracking-tight">${itemName}</h5>
+                            <p class="text-[11px] font-medium text-gray-500 truncate">${item.desc || 'No description available'}</p>
+                        </div>
+                        <button class="try-btn bg-gray-800 text-white px-5 py-2 text-[10px] font-bold uppercase tracking-widest hover:bg-black transition-colors"
+                                data-path="${item.path || ''}" 
+                                data-name="${itemName}" 
+                                data-desc="${item.desc || ''}">TRY</button>
+                    </div>
+                `;
+                row.appendChild(itemEl);
             });
-            
-            accordionContent.appendChild(row);
-            categoryWrapper.appendChild(categoryHeader);
-            categoryWrapper.appendChild(accordionContent);
+
             apiContent.appendChild(categoryWrapper);
         });
-    }
-    
-    function setupAccordion() {
-        const categoryHeaders = document.querySelectorAll('.category-header');
-        
-        categoryHeaders.forEach(header => {
-            header.addEventListener('click', function() {
-                const accordionContent = this.nextElementSibling;
-                const icon = this.querySelector('.accordion-icon');
-                
-                // Toggle active class
-                const isActive = accordionContent.classList.contains('active');
-                
-                if (isActive) {
-                    accordionContent.classList.remove('active');
-                    icon.classList.remove('rotate');
-                } else {
-                    accordionContent.classList.add('active');
-                    icon.classList.add('rotate');
-                }
-            });
-        });
-    }
-    
-    function createApiItemElement(itemName, item, isLastItem) {
-        const itemDiv = document.createElement('div');
-        itemDiv.className = `w-full ${isLastItem ? 'mb-5' : 'mb-2'}`;
-        itemDiv.dataset.name = itemName || '';
-        itemDiv.dataset.desc = item.desc || '';
-    
-        const heroSection = document.createElement('div');
-        heroSection.className = 'flex items-center justify-between p-4 px-6 bg-gray-50 shadow-sm h-20';
-    
-        const textContent = document.createElement('div');
-        textContent.className = 'flex-grow mr-4 overflow-hidden';
-        
-        const title = document.createElement('h5');
-        title.className = 'text-lg font-semibold text-gray-600 truncate';
-        title.textContent = itemName || 'Unnamed Item';
-    
-        const description = document.createElement('p');
-        description.className = 'text-xs font-medium text-gray-600 truncate';
-        description.textContent = item.desc || 'No description';
-    
-        textContent.appendChild(title);
-        textContent.appendChild(description);
-    
-        const button = document.createElement('button');
-        button.className = 'px-4 py-2 text-sm font-medium text-white bg-gray-800 w-13 h-9 flex items-center justify-center hover:bg-gray-700 transition duration-300 flex-shrink-0 get-api-btn';
-        button.dataset.apiPath = item.path || '';
-        button.dataset.apiName = itemName || '';
-        button.dataset.apiDesc = item.desc || '';
-        button.textContent = 'TRY';
-    
-        heroSection.appendChild(textContent);
-        heroSection.appendChild(button);
-        itemDiv.appendChild(heroSection);
-    
-        return itemDiv;
-    }
-    
-    function setupApiButtonHandlers(gtw) {
-        document.addEventListener('click', event => {
-            if (event.target.classList.contains('get-api-btn')) {
-                const { apiPath, apiName, apiDesc } = event.target.dataset;
-    
-                const currentItem = gtw.endpoints
-                    .flatMap(category => Object.values(category.items))
-                    .map(itemData => {
-                        const itemName = Object.keys(itemData)[0];
-                        return { name: itemName, ...itemData[itemName] };
-                    })
-                    .find(item => item.path === apiPath && item.name === apiName);
-    
-                openApiModal(apiName, apiPath, apiDesc);
+
+        // Event Delegation for "TRY" buttons (Mencegah Freeze)
+        apiContent.addEventListener('click', (e) => {
+            if (e.target.classList.contains('try-btn')) {
+                const btn = e.target;
+                openApiModal(btn.dataset.name, btn.dataset.path, btn.dataset.desc);
             }
         });
     }
-    
-    function setupSearchFunctionality() {
-        const searchInput = document.getElementById('api-search');
-        if (!searchInput) return;
-        
-        let originalData = null;
-        
-        function captureOriginalData() {
-            const result = [];
-            const categoryWrappers = document.querySelectorAll('#api-content > div');
-            
-            categoryWrappers.forEach(wrapper => {
-                const header = wrapper.querySelector('.category-header');
-                const accordionContent = wrapper.querySelector('.accordion-content');
-                const row = accordionContent?.querySelector('.row');
-                
-                if (header && row) {
-                    const items = Array.from(row.querySelectorAll('div[data-name]')).map(item => {
-                        return {
-                            element: item.cloneNode(true),
-                            name: item.dataset.name,
-                            desc: item.dataset.desc
-                        };
-                    });
-                    
-                    result.push({
-                        wrapper: wrapper,
-                        header: header,
-                        accordionContent: accordionContent,
-                        row: row,
-                        items: items
-                    });
-                }
-            });
-            
-            return result;
-        }
-        
-        function restoreOriginalData() {
-            if (!originalData) return;
-            
-            originalData.forEach(categoryData => {
-                categoryData.wrapper.classList.remove('hidden');
-                const row = categoryData.row;
-                row.innerHTML = '';
-                
-                categoryData.items.forEach((item, index) => {
-                    const newItem = item.element.cloneNode(true);
-                    newItem.className = index === categoryData.items.length - 1 ? 'w-full mb-5' : 'w-full mb-2';
-                    row.appendChild(newItem);
-                });
-            });
-        }
-        
-        originalData = captureOriginalData();
-        
-        searchInput.addEventListener('input', function(e) {
-            const searchTerm = e.target.value.toLowerCase().trim();
-            
-            if (!searchTerm) {
-                restoreOriginalData();
-                return;
-            }
-            
-            originalData.forEach(categoryData => {
-                const visibleItems = categoryData.items.filter(item => {
-                    const title = item.name?.toLowerCase() || '';
-                    const desc = item.desc?.toLowerCase() || '';
-                    return title.includes(searchTerm) || desc.includes(searchTerm);
-                });
-                
-                if (visibleItems.length === 0) {
-                    categoryData.wrapper.classList.add('hidden');
-                } else {
-                    categoryData.wrapper.classList.remove('hidden');
-                    
-                    // Auto-expand when searching
-                    categoryData.accordionContent.classList.add('active');
-                    categoryData.header.querySelector('.accordion-icon').classList.add('rotate');
-                    
-                    const row = categoryData.row;
-                    row.innerHTML = '';
-                    
-                    visibleItems.forEach((item, index) => {
-                        const newItem = item.element.cloneNode(true);
-                        newItem.className = index === visibleItems.length - 1 ? 'w-full mb-5' : 'w-full mb-2';
-                        
-                        const button = newItem.querySelector('.get-api-btn');
-                        if (button) {
-                            button.dataset.apiPath = item.element.querySelector('.get-api-btn')?.dataset.apiPath || '';
-                            button.dataset.apiName = item.element.querySelector('.get-api-btn')?.dataset.apiName || '';
-                            button.dataset.apiDesc = item.element.querySelector('.get-api-btn')?.dataset.apiDesc || '';
-                        }
-                        
-                        row.appendChild(newItem);
-                    });
-                }
-            });
-        });
-    }
-    
-    function openApiModal(name, endpoint, description, method) {
+
+    // --- 4. MODAL LOGIC (SMOOTH ANIMATION) ---
+    function openApiModal(name, endpoint, description) {
         const modal = document.getElementById('api-modal');
-        const modalBackdrop = modal.querySelector('.fixed.inset-0.bg-black');
         const modalContent = modal.querySelector('.relative.z-10');
-        const closeModalBtn = document.getElementById('close-modal');
-        const submitApiBtn = document.getElementById('submit-api');
-        const modalTitle = document.getElementById('modal-title');
-        const apiMethod = document.getElementById('api-method');
-        const apiDescription = document.getElementById('api-description');
         const paramsContainer = document.getElementById('params-container');
+        const responseContainer = document.getElementById('response-container');
+        const responseData = document.getElementById('response-data');
+        
+        // Reset Modal State
+        responseContainer.classList.add('hidden');
+        paramsContainer.innerHTML = '';
+        responseData.innerHTML = '';
+        document.getElementById('modal-title').textContent = name;
+        document.getElementById('api-description').textContent = description;
+        document.getElementById('submit-api').classList.remove('hidden');
+        paramsContainer.classList.remove('hidden');
+
+        // Detect Parameters from Endpoint
+        const placeholderMatch = endpoint.match(/{([^}]+)}/g);
+        if (placeholderMatch) {
+            placeholderMatch.forEach(match => {
+                const pName = match.replace(/{|}/g, '');
+                createParamInput(pName, paramsContainer);
+            });
+        } else if (endpoint.includes('?')) {
+            const queryPart = endpoint.split('?')[1];
+            queryPart.split('&').forEach(p => {
+                const pName = p.split('=')[0];
+                createParamInput(pName, paramsContainer);
+            });
+        }
+
+        // Show Modal with Tiny Delay to trigger CSS transition
+        modal.classList.remove('hidden');
+        document.body.classList.add('noscroll');
+        
+        setTimeout(() => {
+            modal.classList.add('opacity-100');
+            modalContent.classList.remove('scale-95', 'opacity-0');
+            modalContent.classList.add('scale-100', 'opacity-100');
+        }, 10);
+
+        // API Submission Logic
+        document.getElementById('submit-api').onclick = async () => {
+            handleApiRequest(endpoint, paramsContainer);
+        };
+    }
+
+    function createParamInput(name, container) {
+        const isOptional = name.startsWith('_');
+        const cleanName = isOptional ? name.substring(1) : name;
+        const div = document.createElement('div');
+        div.className = 'mb-3';
+        div.innerHTML = `
+            <label class="text-[10px] font-bold uppercase text-gray-400 mb-1 block">${cleanName} ${isOptional ? '(Optional)' : '*'}</label>
+            <input type="text" id="param-${name}" class="w-full px-3 py-2 text-sm border-2 border-gray-100 focus:border-gray-800 outline-none transition-all" placeholder="Enter ${cleanName}...">
+            <p id="error-${name}" class="text-red-500 text-[10px] mt-1 hidden">This field is required!</p>
+        `;
+        container.appendChild(div);
+    }
+
+    // --- 5. API REQUEST HANDLER ---
+    async function handleApiRequest(endpoint, paramsContainer) {
+        const submitBtn = document.getElementById('submit-api');
         const responseContainer = document.getElementById('response-container');
         const responseData = document.getElementById('response-data');
         const responseStatus = document.getElementById('response-status');
         const responseTime = document.getElementById('response-time');
-        const existingUrlDisplay = document.querySelector('.urlDisplay');
         
-        if (existingUrlDisplay) {
-            existingUrlDisplay.remove();
-        }
-        responseContainer.classList.add('hidden');
-        responseData.innerHTML = '';
-        submitApiBtn.classList.remove('hidden');
-        paramsContainer.classList.remove('hidden');
-        paramsContainer.innerHTML = '';
-        
-        modalTitle.textContent = name;
-        apiDescription.textContent = description;
-        
-        const url = new URL(endpoint, window.location.origin);
-        const urlParams = url.search ? url.search.substring(1).split('&') : [];
-        if (urlParams.length) {
-            urlParams.forEach(param => {
-                const [key] = param.split('=');
-                if (key) {
-                    const isOptional = key.startsWith('_');
-                    const placeholderText = `Enter ${key}${isOptional ? ' (optional)' : ''}`;
-                    
-                    const paramField = document.createElement('div');
-                    paramField.className = 'mb-3';
-                    paramField.innerHTML = `
-                        <input type='text' id='param-${key}' class='w-full px-3 py-1.5 text-sm text-gray-700 border border-gray-300 focus:outline-none focus:ring-1 focus:ring-gray-500 focus:border-transparent' placeholder='${placeholderText}'>
-                        <div id='error-${key}' class='text-red-500 text-xs mt-1 hidden'>This field is required</div>
-                    `;
-                    paramsContainer.appendChild(paramField);
+        let isValid = true;
+        let finalUrl = endpoint;
+
+        // Validation & URL Building
+        const inputs = paramsContainer.querySelectorAll('input');
+        inputs.forEach(input => {
+            const pName = input.id.replace('param-', '');
+            const val = input.value.trim();
+            const error = document.getElementById(`error-${pName}`);
+
+            if (!pName.startsWith('_') && !val) {
+                isValid = false;
+                error.classList.remove('hidden');
+                input.classList.add('border-red-500');
+            } else {
+                if (error) error.classList.add('hidden');
+                input.classList.remove('border-red-500');
+                
+                if (val) {
+                    if (finalUrl.includes(`{${pName}}`)) {
+                        finalUrl = finalUrl.replace(`{${pName}}`, encodeURIComponent(val));
+                    } else {
+                        const separator = finalUrl.includes('?') ? '&' : '?';
+                        finalUrl += `${separator}${pName}=${encodeURIComponent(val)}`;
+                    }
                 }
-            });
-        } else {
-            const placeholderMatch = endpoint.match(/{([^}]+)}/g);
-            if (placeholderMatch) {
-                placeholderMatch.forEach(match => {
-                    const paramName = match.replace(/{|}/g, '');
-                    const isOptional = paramName.startsWith('_');
-                    const placeholderText = `Enter ${paramName}${isOptional ? ' (optional)' : ''}`;
-                    
-                    const paramField = document.createElement('div');
-                    paramField.className = 'mb-3';
-                    paramField.innerHTML = `
-                        <input type='text' id='param-${paramName}' class='w-full px-3 py-1.5 text-sm text-gray-700 border border-gray-300 focus:outline-none focus:ring-1 focus:ring-gray-500 focus:border-transparent' placeholder='${placeholderText}'>
-                        <div id='error-${paramName}' class='text-red-500 text-xs mt-1 hidden'>This field is required</div>
-                    `;
-                    paramsContainer.appendChild(paramField);
-                });
-            }
-        }
-        
-        modal.classList.remove('hidden');
-        document.body.classList.add('noscroll');
-        
-        modal.offsetWidth;
-        
-        modal.classList.add('opacity-100');
-        modalBackdrop.classList.add('opacity-50');
-        modalContent.classList.add('scale-100', 'opacity-100');
-        
-        const closeModal = function() {
-            modal.classList.remove('opacity-100');
-            modalBackdrop.classList.remove('opacity-50');
-            modalContent.classList.remove('scale-100', 'opacity-100');
-            
-            setTimeout(() => {
-                modal.classList.add('hidden');
-                document.body.classList.remove('noscroll');
-            }, 300);
-        };
-        
-        closeModalBtn.onclick = closeModal;
-        
-        modal.addEventListener('click', function(event) {
-            if (event.target === modal) {
-                closeModal();
             }
         });
+
+        if (!isValid) return;
+
+        // UI Feedback
+        submitBtn.classList.add('hidden');
+        responseContainer.classList.remove('hidden');
+        responseData.textContent = 'Processing request...';
         
-        document.addEventListener('keydown', function(event) {
-            if (event.key === 'Escape') {
-                closeModal();
-            }
-        }, { once: true });
-        
-        submitApiBtn.onclick = async function() {
-            let isValid = true;
+        const start = Date.now();
+        try {
+            const res = await fetch(finalUrl);
+            const duration = Date.now() - start;
+            const contentType = res.headers.get('content-type');
             
-            document.querySelectorAll('[id^="error-"]').forEach(errorElement => {
-                errorElement.classList.add('hidden');
+            responseStatus.textContent = res.status;
+            responseStatus.className = res.ok ? 'px-2 py-0.5 text-[10px] font-bold bg-green-100 text-green-700 uppercase' : 'px-2 py-0.5 text-[10px] font-bold bg-red-100 text-red-700 uppercase';
+            responseTime.textContent = `${duration}ms`;
+
+            if (contentType && contentType.includes('application/json')) {
+                const json = await res.json();
+                responseData.textContent = JSON.stringify(json, null, 2);
+            } else {
+                responseData.textContent = await res.text();
+            }
+        } catch (err) {
+            responseData.textContent = `Error: ${err.message}`;
+            responseStatus.textContent = 'FAIL';
+        }
+    }
+
+    // --- 6. UTILS (ACCORDION, SEARCH, CLOSE) ---
+    function setupAccordion() {
+        document.querySelectorAll('.category-header').forEach(header => {
+            header.addEventListener('click', () => {
+                const content = header.nextElementSibling;
+                const icon = header.querySelector('.accordion-icon');
+                content.classList.toggle('active');
+                icon.classList.toggle('rotate');
+            });
+        });
+    }
+
+    function setupSearchFunctionality() {
+        const searchInput = document.getElementById('api-search');
+        if (!searchInput) return;
+
+        searchInput.addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            document.querySelectorAll('.api-item-card').forEach(card => {
+                const isMatch = card.dataset.name.includes(term) || card.dataset.desc.includes(term);
+                card.style.display = isMatch ? 'block' : 'none';
+                
+                if (term.length > 0 && isMatch) {
+                    const content = card.closest('.accordion-content');
+                    content.classList.add('active');
+                    content.previousElementSibling.querySelector('.accordion-icon').classList.add('rotate');
+                }
             });
             
-            if (paramsContainer.children.length > 0) {
-                Array.from(paramsContainer.children).forEach(paramDiv => {
-                    const input = paramDiv.querySelector('input');
-                    const paramName = input.id.replace('param-', '');
-                    const paramValue = input.value.trim();
-                    const errorElement = document.getElementById(`error-${paramName}`);
-                    
-                    if (!paramName.startsWith('_') && paramValue === '') {
-                        isValid = false;
-                        errorElement.classList.remove('hidden');
-                        input.classList.add('border-red-500');
-                    } else {
-                        input.classList.remove('border-red-500');
-                    }
-                });
-            }
-            
-            if (!isValid) {
-                return;
-            }
-            
-            responseContainer.classList.remove('hidden');
-            paramsContainer.classList.add('hidden');
-            submitApiBtn.classList.add('hidden');
-            
-            const startTime = Date.now();
-            try {
-                let apiUrl = endpoint;
-                
-                if (paramsContainer.children.length > 0) {
-                    Array.from(paramsContainer.children).forEach(paramDiv => {
-                        const input = paramDiv.querySelector('input');
-                        const paramName = input.id.replace('param-', '');
-                        const paramValue = input.value;
-                        
-                        if (paramName.startsWith('_') && paramValue === '') {
-                            return;
-                        }
-                        
-                        if (apiUrl.includes(`{${paramName}}`)) {
-                            apiUrl = apiUrl.replace(`{${paramName}}`, encodeURIComponent(paramValue));
-                        } 
-                        else {
-                            const urlObj = new URL(apiUrl, window.location.origin);
-                            urlObj.searchParams.set(paramName, paramValue);
-                            apiUrl = urlObj.pathname + urlObj.search;
-                        }
-                    });
-                }
-                const fullUrl = new URL(apiUrl, window.location.origin).href;
-                
-                const urlDisplayDiv = document.createElement('div');
-                urlDisplayDiv.className = 'urlDisplay mb-4 p-3 bg-gray-50 font-mono text-xs overflow-hidden';
-                
-                const urlContent = document.createElement('div');
-                urlContent.className = 'break-all';
-                urlContent.textContent = fullUrl;
-                urlDisplayDiv.appendChild(urlContent);
-                
-                responseContainer.parentNode.insertBefore(urlDisplayDiv, responseContainer);
-                
-                responseData.innerHTML = 'Loading...';
-                
-                const requestOptions = {
-                    method: 'get',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                };
-                
-                const response = await fetch(apiUrl, requestOptions);
-                const endTime = Date.now();
-                const duration = endTime - startTime;
-                
-                responseStatus.textContent = response.status;
-                responseStatus.className = response.ok 
-                    ? 'px-2 py-1 text-xs font-medium bg-green-100 text-green-800 mr-2'
-                    : 'px-2 py-1 text-xs font-medium bg-red-100 text-red-800 mr-2';
-                
-                responseTime.textContent = `${duration}ms`;
-                
-                const contentType = response.headers.get('content-type');
-                
-                if (contentType && (
-                    contentType.includes('image/') || 
-                    contentType.includes('video/') || 
-                    contentType.includes('audio/') ||
-                    contentType.includes('application/octet-stream')
-                )) {
-                    const blob = await response.blob();
-                    const objectUrl = URL.createObjectURL(blob);
-                    
-                    if (contentType.includes('image/')) {
-                        responseData.innerHTML = `<img src='${objectUrl}' alt='Response Image' class='max-w-full h-auto' />`;
-                    } else if (contentType.includes('video/')) {
-                        responseData.innerHTML = `
-                            <video controls class='max-w-full'>
-                                <source src='${objectUrl}' type='${contentType}'>
-                                Your browser does not support the video tag.
-                            </video>`;
-                    } else if (contentType.includes('audio/')) {
-                        responseData.innerHTML = `
-                            <audio controls class='w-full'>
-                                <source src='${objectUrl}' type='${contentType}'>
-                                Your browser does not support the audio tag.
-                            </audio>`;
-                    } else {
-                        responseData.innerHTML = `
-                            <div class='text-center p-4'>
-                                <p class='mb-2'>Binary data received (${blob.size} bytes)</p>
-                                <a href='${objectUrl}' download='response-data' class='px-4 py-2 bg-blue-500 text-white hover:bg-blue-600'>Download File</a>
-                            </div>`;
-                    }
-                } else if (contentType && contentType.includes('application/json')) {
-                    const data = await response.json();
-                    const responseText = JSON.stringify(data, null, 2);
-                    responseData.innerHTML = `<pre class='whitespace-pre-wrap break-words'>${responseText}</pre>`;
-                } else {
-                    const responseText = await response.text();
-                    responseData.innerHTML = `<pre class='whitespace-pre-wrap break-words'>${responseText}</pre>`;
-                }
-            } catch (error) {
-                const endTime = Date.now();
-                const duration = endTime - startTime;
-                
-                responseStatus.textContent = 'Error';
-                responseStatus.className = 'px-2 py-1 text-xs font-medium bg-red-100 text-red-800 mr-2';
-                responseTime.textContent = `${duration}ms`;
-                responseData.innerHTML = `<pre class='text-red-500'>${error.message}</pre>`;
-            }
-        };
+            document.querySelectorAll('.category-section').forEach(sec => {
+                const hasVisible = Array.from(sec.querySelectorAll('.api-item-card')).some(c => c.style.display !== 'none');
+                sec.style.display = hasVisible ? 'block' : 'none';
+            });
+        });
+    }
+
+    window.closeModal = function() {
+        const modal = document.getElementById('api-modal');
+        const modalContent = modal.querySelector('.relative.z-10');
+        modal.classList.remove('opacity-100');
+        modalContent.classList.add('scale-95', 'opacity-0');
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            document.body.classList.remove('noscroll');
+        }, 300);
+    };
+
+    document.getElementById('close-modal').onclick = closeModal;
+    
+    function setupApiLinks(set) {
+        const container = document.getElementById('api-links');
+        if (!container || !set.links) return;
+        container.innerHTML = set.links.map(l => `
+            <div class="flex items-center gap-2">
+                <div class="w-1.5 h-1.5 bg-gray-400 rounded-full"></div>
+                <a href="${l.url}" target="_blank" class="hover:text-gray-800 transition-colors uppercase tracking-tighter" style="font-size: 10px;">${l.name}</a>
+            </div>
+        `).join('');
     }
 });
