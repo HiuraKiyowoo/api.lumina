@@ -2,7 +2,7 @@ const axios = require('axios');
 
 module.exports = {
     name: 'Anime Style',
-    desc: 'JSON Response',
+    desc: 'JSON Response | Filter | Image2Image',
     category: 'Style Changer',
     params: ['imageUrl'],
     async run(req, res) {
