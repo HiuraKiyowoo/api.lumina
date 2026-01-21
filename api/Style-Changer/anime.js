@@ -1,9 +1,9 @@
 const axios = require('axios');
 
 module.exports = {
-    name: 'Anime Style Changer',
-    desc: 'Convert image to anime style',
-    category: 'Style-Changer',
+    name: 'Anime Style',
+    desc: 'JSON Response',
+    category: 'Style Changer',
     params: ['imageUrl'],
     async run(req, res) {
         try {
